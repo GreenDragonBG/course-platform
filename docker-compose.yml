@@ -1,0 +1,52 @@
+services:
+  app:
+    build: ./app
+    container_name: php-apache
+    ports:
+      - "8080:80"
+    volumes:
+      - ./app/src:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - app-network
+    environment:
+      MYSQL_HOST: db
+      MYSQL_DATABASE: online_courses
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: online_courses
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+volumes:
+  db_data: {}
+
+networks:
+  app-network:
